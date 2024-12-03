@@ -1,39 +1,3 @@
-# Starter pipeline
-# Start with a minimal pipeline that you can customize to build and deploy your code.
-# Add steps that build, run tests, deploy, and more:
-# https://aka.ms/yaml
- 
-# trigger:
-#   none
- 
-# pool:
-#   name: "poolcapstone"
- 
-# stages:
-#   # Stage 1: Git Clone
-#   - stage: GitClone
-#     displayName: "Clone Repository"
-#     jobs:
-#       - job: CloneJob
-#         displayName: "Clone Git Repository"
-#         steps:
-#           - checkout: self
-#             displayName: "Checkout Source Code"
-
-#   # Stage 2: Run Ansible Playbook to Install Terraform
-#   - stage: RunAnsiblePlaybook 
-#     displayName: "Run Ansible Playbook to Install"
-#     dependsOn: GitClone
-#     jobs:
-#       - job: InstallTerraform
-#         displayName: "Install Terraform"
-#         steps:
-#           - script: |
-#               echo "Running Ansible playbook to install Terraform..."
-#               ansible-playbook ./install-terraform.yaml  # This is the playbook you want to run
-#             displayName: "Run install-terraform.yaml Playbook"
-
-
 trigger:
   none  # Manual trigger
 
@@ -79,6 +43,7 @@ stages:
         steps:
           # Initialize Terraform
           - script: |
+              cd terraform
               terraform init -backend-config="resource_group_name=RG-saunak" \
                              -backend-config="storage_account_name=saunak021224" \
                              -backend-config="container_name=container-saunak" \
@@ -87,10 +52,12 @@ stages:
 
           # Terraform Plan
           - script: |
+              cd terraform
               terraform plan -out=tfplan
             displayName: "Terraform Plan"
 
           # Terraform Apply
           - script: |
+              cd terraform
               terraform apply -auto-approve tfplan
             displayName: "Apply Terraform Plan"

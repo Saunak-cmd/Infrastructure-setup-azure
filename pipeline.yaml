@@ -33,6 +33,7 @@
 #               ansible-playbook ./install-terraform.yaml  # This is the playbook you want to run
 #             displayName: "Run install-terraform.yaml Playbook"
 
+
 # Starter pipeline
 # Start with a minimal pipeline that you can customize to build and deploy your code.
 # Add steps that build, run tests, deploy, and more:
@@ -68,7 +69,7 @@ stages:
               ansible-playbook ./install-terraform.yaml  # Playbook for installing Terraform (adjust path)
             displayName: "Run install-terraform.yaml Playbook"
 
-  # Stage 3: Terraform Apply to Deploy Resources
+  # Stage 3: Terraform Deploy Infrastructure
   - stage: TerraformDeploy
     displayName: "Terraform Deploy Infrastructure"
     dependsOn: RunAnsiblePlaybook
@@ -76,11 +77,6 @@ stages:
       - job: TerraformJob
         displayName: "Run Terraform Commands"
         steps:
-          - task: UseTerraform@0
-            inputs:
-              version: '1.4.x'  # Set the version you want for Terraform.
-            displayName: "Install Terraform"
-
           # Azure CLI login step
           - task: AzureCLI@2
             inputs:
@@ -93,7 +89,7 @@ stages:
                 az account set --subscription $(azureSubscriptionId)  # Set the subscription
             displayName: "Azure CLI Login"
 
-          # Terraform init and plan
+          # Run Terraform init and plan
           - script: |
               terraform init  # Initialize Terraform
               terraform plan -out=tfplan  # Plan infrastructure changes

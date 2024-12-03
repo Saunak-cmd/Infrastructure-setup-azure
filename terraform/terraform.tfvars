@@ -6,12 +6,12 @@
  
  
  
-subscription_id          = "67e4852b-fef3-4cf9-980d-f1a51712d9a1"
+subscription_id          = "f027d2e5-7ece-41c4-8a19-54dfa1d3491d"
 location                 = "Central India"
-existing_resource_group_name = "RG-Swati"
-acr_name                     = "swati31224"  # Ensure this name is globally unique
+existing_resource_group_name = "RG-saunak"
+acr_name                     = "saunak021224"  # Ensure this name is globally unique
 acr_sku                      = "Basic"
-aks_name                     = "myakscluster-swati"
-aks_dns_prefix               = "myakscluster-swati"
+aks_name                     = "myakscluster-saunak"
+aks_dns_prefix               = "myakscluster-saunak"
 node_count                   = 3
 vm_size                      = "Standard_DS2_v2"

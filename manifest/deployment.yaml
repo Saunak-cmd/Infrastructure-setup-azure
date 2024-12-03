@@ -15,11 +15,11 @@ spec:
         app: nginx-pod
     spec:
       containers:
-      - name: nginx
-        image: nginx:latest
-        ports:
-        - containerPort: 80
-      - name: redis
-        image: redis
-        ports:
-        - containerPort: 6379
+        - name: nginx
+          image: nginx:latest
+          ports:
+            - containerPort: 80
+        - name: redis
+          image: redis
+          ports:
+            - containerPort: 6379

@@ -3,12 +3,47 @@
 # Add steps that build, run tests, deploy, and more:
 # https://aka.ms/yaml
  
+# trigger:
+#   none
+ 
+# pool:
+#   name: "poolcapstone"
+ 
+# stages:
+#   # Stage 1: Git Clone
+#   - stage: GitClone
+#     displayName: "Clone Repository"
+#     jobs:
+#       - job: CloneJob
+#         displayName: "Clone Git Repository"
+#         steps:
+#           - checkout: self
+#             displayName: "Checkout Source Code"
+
+#   # Stage 2: Run Ansible Playbook to Install Terraform
+#   - stage: RunAnsiblePlaybook 
+#     displayName: "Run Ansible Playbook to Install"
+#     dependsOn: GitClone
+#     jobs:
+#       - job: InstallTerraform
+#         displayName: "Install Terraform"
+#         steps:
+#           - script: |
+#               echo "Running Ansible playbook to install Terraform..."
+#               ansible-playbook ./install-terraform.yaml  # This is the playbook you want to run
+#             displayName: "Run install-terraform.yaml Playbook"
+
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
 trigger:
-  none
- 
+  none  # This triggers the pipeline manually. Adjust as per your needs.
+
 pool:
-  name: "poolcapstone"
- 
+  name: "poolcapstone"  # Name of your agent pool.
+
 stages:
   # Stage 1: Git Clone
   - stage: GitClone
@@ -30,5 +65,51 @@ stages:
         steps:
           - script: |
               echo "Running Ansible playbook to install Terraform..."
-              ansible-playbook ./install-terraform.yaml  # This is the playbook you want to run
+              ansible-playbook ./install-terraform.yaml  # Playbook for installing Terraform (adjust path)
             displayName: "Run install-terraform.yaml Playbook"
+
+  # Stage 3: Terraform Apply to Deploy Resources
+  - stage: TerraformDeploy
+    displayName: "Terraform Deploy Infrastructure"
+    dependsOn: RunAnsiblePlaybook
+    jobs:
+      - job: TerraformJob
+        displayName: "Run Terraform Commands"
+        steps:
+          - task: UseTerraform@0
+            inputs:
+              version: '1.4.x'  # Set the version you want for Terraform.
+            displayName: "Install Terraform"
+
+          # Azure CLI login step
+          - task: AzureCLI@2
+            inputs:
+              azureSubscription: '<your-service-connection-name>'  # Azure DevOps service connection for Azure
+              scriptType: bash
+              scriptLocation: inlineScript
+              inlineScript: |
+                echo "Logging into Azure CLI..."
+                az login --service-principal -u $(azureAppId) -p $(azurePassword) --tenant $(tenantId)
+                az account set --subscription $(azureSubscriptionId)  # Set the subscription
+            displayName: "Azure CLI Login"
+
+          # Terraform init and plan
+          - script: |
+              terraform init  # Initialize Terraform
+              terraform plan -out=tfplan  # Plan infrastructure changes
+            displayName: "Terraform Init and Plan"
+
+          # Apply Terraform plan to create resources
+          - script: |
+              terraform apply -auto-approve tfplan  # Apply the changes without confirmation
+            displayName: "Terraform Apply"
+
+          # Optional: Step to output Kubeconfig for AKS cluster
+          - script: |
+              echo $(terraform output -raw aks_kube_config) > $(System.DefaultWorkingDirectory)/kube_config.yaml
+            displayName: "Save AKS Kubeconfig"
+
+          # Optional: Verify AKS cluster (kubectl commands)
+          - script: |
+              kubectl --kubeconfig=$(System.DefaultWorkingDirectory)/kube_config.yaml get nodes
+            displayName: "Verify AKS Cluster Nodes"

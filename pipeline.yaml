@@ -1,63 +1,71 @@
-trigger:
-  none  # Manual trigger
+# Starter pipeline
+# This pipeline runs the playbooks to install various tools and setup Ansible.
+
+# Disables automatic trigger; you can manually run the pipeline if needed
+trigger: none
 
 pool:
-  name: "poolcapstone"
+  name: "poolcapstone"  # Use the specific agent pool you need
 
 stages:
-  # Stage 1: Clone Repository
-  - stage: CloneRepo
+  # Stage 1: Git Clone
+  - stage: GitClone
     displayName: "Clone Repository"
     jobs:
       - job: CloneJob
         displayName: "Clone Git Repository"
         steps:
           - checkout: self
-            displayName: "Checkout Repository"
+            displayName: "Checkout Source Code"
 
-  # Stage 2: Azure CLI Login
-  - stage: AzureLogin
-    displayName: "Login to Azure"
-    dependsOn: CloneRepo
+  # Stage 2: Run Ansible Playbook
+  - stage: RunAnsiblePlaybook
+    displayName: "Run Ansible Playbook to Install"
+    dependsOn: GitClone
     jobs:
-      - job: AzureLoginJob
-        displayName: "Authenticate with Azure"
+      - job: InstallTerraform
+        displayName: "Install Terraform"
         steps:
-          - task: AzureCLI@2
-            inputs:
-              azureSubscription: "connectionsaunak"  # Replace with your service connection name
-              scriptType: bash
-              scriptLocation: inlineScript
-              inlineScript: |
-                echo "Setting Azure Subscription..."
-                az account set --subscription f027d2e5-7ece-41c4-8a19-54dfa1d3491d
-            displayName: "Azure CLI Login"
+          - script: |
+              echo "Running Ansible playbook to install ..."
+              ansible-playbook ./ansible-playbook.yml
+            displayName: "Run Ansible Playbook"
 
   # Stage 3: Terraform Deploy
   - stage: TerraformDeploy
     displayName: "Deploy Infrastructure with Terraform"
-    dependsOn: AzureLogin
+    dependsOn: RunAnsiblePlaybook
     jobs:
       - job: TerraformJob
         displayName: "Run Terraform Commands"
         steps:
           # Initialize Terraform
-          - script: |
-              cd terraform
-              terraform init -backend-config="resource_group_name=RG-saunak" \
-                             -backend-config="storage_account_name=saunak021224" \
-                             -backend-config="container_name=container-saunak" \
-                             -backend-config="key=terraform2.tfstate"
+          - task: TerraformTaskV4@4
+            inputs:
+              provider: 'azurerm'
+              command: 'init'
+              workingDirectory: '$(System.DefaultWorkingDirectory)/terraform'
+              backendServiceArm: 'connectionsaunak'
+              backendAzureRmResourceGroupName: 'RG-saunak'
+              backendAzureRmStorageAccountName: 'saunak021224'
+              backendAzureRmContainerName: 'container-saunak'
+              backendAzureRmKey: 'terraform2.tfstate'
             displayName: "Initialize Terraform"
 
           # Terraform Plan
-          - script: |
-              cd terraform
-              terraform plan -out=tfplan
+          - task: TerraformTaskV4@4
+            inputs:
+              provider: 'azurerm'
+              command: 'plan'
+              workingDirectory: '$(System.DefaultWorkingDirectory)/terraform'
+              environmentServiceNameAzureRM: 'connectionsaunak'
             displayName: "Terraform Plan"
 
           # Terraform Apply
-          - script: |
-              cd terraform
-              terraform apply -auto-approve tfplan
+          - task: TerraformTaskV4@4
+            inputs:
+              provider: 'azurerm'
+              command: 'apply'
+              workingDirectory: '$(System.DefaultWorkingDirectory)/terraform'
+              environmentServiceNameAzureRM: 'connectionsaunak'
             displayName: "Apply Terraform Plan"

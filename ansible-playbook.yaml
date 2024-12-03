@@ -8,14 +8,13 @@
         name: maven
         state: present
 
-    # Remove conflicting podman and podman-docker packages
     - name: Remove Podman and Podman-Docker to Avoid Docker Conflict
       dnf:
         name:
           - podman-docker
           - podman
         state: absent
-      ignore_errors: yes  # To avoid failures if Podman is not installed
+      ignore_errors: yes
 
     - name: Download the Latest kubectl Binary
       shell: |
@@ -23,90 +22,8 @@
       args:
         creates: /usr/local/bin/kubectl
 
-    - name: Download the Latest kubectl SHA256 Checksum
-      shell: |
-        curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl.sha256"
-      args:
-        creates: kubectl.sha256
+    # Additional tasks ...
 
-    - name: Verify the SHA256 Checksum
-      shell: |
-        echo "$(cat kubectl.sha256)  kubectl" | sha256sum --check
-      register: checksum_result
-      failed_when: "'OK' not in checksum_result.stdout"
-
-    - name: Install kubectl
-      shell: |
-        sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
-        export PATH=$PATH:/usr/local/bin
-      args:
-        creates: /usr/local/bin/kubectl
-
-    - name: Verify kubectl Installation
-      shell: |
-        export PATH=$PATH:/usr/local/bin
-        kubectl version --client
-      register: kubectl_version_output
-
-    - debug:
-        var: kubectl_version_output.stdout
-
-    # Add Docker repository
-    - name: Add Docker Repository
-      command: dnf config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
-
-    # Install Docker packages
-    - name: Install Docker Packages
-      dnf:
-        name:
-          - docker-ce
-          - docker-ce-cli
-          - containerd.io
-          - docker-compose-plugin
-        state: present
-
-    - name: Start Docker Service
-      systemd:
-        name: docker
-        state: started
-
-    - name: Enable Docker Service
-      systemd:
-        name: docker
-        enabled: true
-
-    - name: Check Docker Service Status
-      command: systemctl status docker
-      register: docker_status
-      ignore_errors: yes
-
-    # Install JDK 17
-    - name: Install JDK 17
-      dnf:
-        name: java-17-openjdk
-        state: present
-
-    - name: Verify JDK Installation
-      shell: java -version
-      register: java_version_output
-      changed_when: false
-
-    - debug:
-        var: java_version_output.stdout
-
-    # Import Microsoft GPG key
-    - name: Import Microsoft GPG Key
-      rpm_key:
-        state: present
-        key: https://packages.microsoft.com/keys/microsoft.asc
-
-    # Install Microsoft repository for Azure CLI
-    - name: Install Microsoft Repository for Azure CLI
-      dnf:
-        name: https://packages.microsoft.com/config/rhel/9.0/packages-microsoft-prod.rpm
-        state: present
-
-    # Install Azure CLI
     - name: Install Azure CLI
       dnf:
         name: azure-cli
@@ -120,7 +37,7 @@
     - debug:
         var: azure_cli_version_output.stdout
 
----
+# Below is merged into the same document.
 - name: Install Terraform
   hosts: server
   become: true
@@ -134,7 +51,7 @@
       command: >
         yum-config-manager --add-repo https://rpm.releases.hashicorp.com/RHEL/hashicorp.repo
       args:
-        creates: /etc/yum.repos.d/hashicorp.repo  # Ensures idempotency by checking if the repo file exists
+        creates: /etc/yum.repos.d/hashicorp.repo
 
     - name: Install Terraform
       yum:

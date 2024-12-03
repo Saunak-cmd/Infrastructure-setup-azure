@@ -110,5 +110,3 @@ stages:
               kubernetesCluster: 'myakscluster-saunak'
               useClusterAdmin: true
               manifests: '$(System.DefaultWorkingDirectory)/manifest/*'
-
-          

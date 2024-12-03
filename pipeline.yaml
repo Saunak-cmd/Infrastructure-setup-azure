@@ -35,10 +35,10 @@
 
 
 trigger:
-  none  # This triggers the pipeline manually. Adjust as per your needs.
+  none
 
 pool:
-  name: "poolcapstone"  # Name of your agent pool.
+  name: "poolcapstone"
 
 stages:
   # Stage 1: Git Clone
@@ -83,14 +83,16 @@ stages:
                 az account set --subscription 'f027d2e5-7ece-41c4-8a19-54dfa1d3491d'  # Set the correct subscription ID
             displayName: "Azure CLI Login"
 
-          # Run Terraform init and plan
+          # Change the working directory to where your Terraform files are located
           - script: |
+              cd terraform  # Change to your Terraform directory, if needed
               terraform init  # Initialize Terraform
               terraform plan -out=tfplan  # Plan infrastructure changes
             displayName: "Terraform Init and Plan"
 
           # Apply Terraform plan to create resources
           - script: |
+              cd terraform  # Ensure you're in the Terraform directory
               terraform apply -auto-approve tfplan  # Apply the changes without confirmation
             displayName: "Terraform Apply"
 

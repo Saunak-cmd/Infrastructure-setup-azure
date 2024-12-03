@@ -1,0 +1,52 @@
+---
+- name: Install Development Tools on Rocky Linux
+  hosts: vm1-saunak
+  become: yes
+  tasks:
+    - name: Update package repository
+      ansible.builtin.dnf:
+        update_cache: yes
+    
+    - name: Install JDK 17
+      ansible.builtin.dnf:
+        name: java-17-openjdk
+        state: present
+
+    - name: Install Maven
+      ansible.builtin.dnf:
+        name: maven
+        state: present
+
+
+    - name: Install Docker
+      ansible.builtin.dnf:
+        name: docker
+        state: present
+
+    - name: Start and enable Docker service
+      ansible.builtin.service:
+        name: docker
+        state: started
+        enabled: yes
+
+    - name: Install Docker Compose
+      ansible.builtin.get_url:
+        url: https://github.com/docker/compose/releases/download/v2.1.1/docker-compose-linux-x86_64
+        dest: /usr/local/bin/docker-compose
+        mode: '0755'
+
+
+    - name: Install kubectl
+      ansible.builtin.get_url:
+        url: https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl
+        dest: /usr/local/bin/kubectl
+        mode: '0755'
+
+    - name: Install Azure CLI
+      ansible.builtin.shell:
+        cmd: |
+          rpm --import https://packages.microsoft.com/keys/microsoft.asc
+          echo -e "[azure-cli]\nname=Azure CLI\nbaseurl=https://packages.microsoft.com/yumrepos/azure-cli\nenabled=1\ngpgcheck=1\ngpgkey=https://packages.microsoft.com/keys/microsoft.asc" | sudo tee /etc/yum.repos.d/azure-cli.repo
+          sudo dnf install -y azure-cli
+      args:
+        executable: /bin/bash

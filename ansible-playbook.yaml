@@ -1,6 +1,6 @@
 ---
 - name: Install Development Tools on Rocky Linux
-  hosts: vm1-saunak
+  hosts: saunak
   become: yes
   tasks:
     - name: Update package repository

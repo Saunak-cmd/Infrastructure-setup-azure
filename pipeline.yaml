@@ -39,6 +39,7 @@
 # Add steps that build, run tests, deploy, and more:
 # https://aka.ms/yaml
 
+
 trigger:
   none  # This triggers the pipeline manually. Adjust as per your needs.
 
@@ -80,7 +81,7 @@ stages:
           # Azure CLI login step
           - task: AzureCLI@2
             inputs:
-              azureSubscription: '<your-service-connection-name>'  # Azure DevOps service connection for Azure
+              azureSubscription: 'connectionsaunak'  # Azure DevOps service connection for Azure
               scriptType: bash
               scriptLocation: inlineScript
               inlineScript: |

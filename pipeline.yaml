@@ -8,67 +8,67 @@ pool:
   name: "poolcapstone"  # Use the specific agent pool you need
 
 stages:
-  # # Stage 1: Git Clone
-  # - stage: GitClone
-  #   displayName: "Clone Repository"
-  #   jobs:
-  #     - job: CloneJob
-  #       displayName: "Clone Git Repository"
-  #       steps:
-  #         - checkout: self
-  #           displayName: "Checkout Source Code"
+  # Stage 1: Git Clone
+  - stage: GitClone
+    displayName: "Clone Repository"
+    jobs:
+      - job: CloneJob
+        displayName: "Clone Git Repository"
+        steps:
+          - checkout: self
+            displayName: "Checkout Source Code"
 
-  # # Stage 2: Run Ansible Playbook
-  # - stage: RunAnsiblePlaybook
-  #   displayName: "Run Ansible Playbook to Install"
-  #   dependsOn: GitClone
-  #   jobs:
-  #     - job: InstallTerraform
-  #       displayName: "Install Terraform"
-  #       steps:
-  #         - script: |
-  #             echo "Running Ansible playbook to install ..."
-  #             ansible-playbook ./ansible-playbook.yaml
-  #           displayName: "Run Ansible Playbook"
+  # Stage 2: Run Ansible Playbook
+  - stage: RunAnsiblePlaybook
+    displayName: "Run Ansible Playbook to Install"
+    dependsOn: GitClone
+    jobs:
+      - job: InstallTerraform
+        displayName: "Install Terraform"
+        steps:
+          - script: |
+              echo "Running Ansible playbook to install ..."
+              ansible-playbook ./ansible-playbook.yaml
+            displayName: "Run Ansible Playbook"
 
-  # # Stage 3: Terraform Deploy
-  # - stage: TerraformDeploy
-  #   displayName: "Deploy Infrastructure with Terraform"
-  #   dependsOn: RunAnsiblePlaybook
-  #   jobs:
-  #     - job: TerraformJob
-  #       displayName: "Run Terraform Commands"
-  #       steps:
-  #         # Initialize Terraform
-  #         - task: TerraformTaskV4@4
-  #           inputs:
-  #             provider: 'azurerm'
-  #             command: 'init'
-  #             workingDirectory: '$(System.DefaultWorkingDirectory)/terraform'
-  #             backendServiceArm: 'connectionsaunak'
-  #             backendAzureRmResourceGroupName: 'RG-saunak'
-  #             backendAzureRmStorageAccountName: 'saunak021224'
-  #             backendAzureRmContainerName: 'container-saunak'
-  #             backendAzureRmKey: 'terraform2.tfstate'
-  #           displayName: "Initialize Terraform"
+  # Stage 3: Terraform Deploy
+  - stage: TerraformDeploy
+    displayName: "Deploy Infrastructure with Terraform"
+    dependsOn: RunAnsiblePlaybook
+    jobs:
+      - job: TerraformJob
+        displayName: "Run Terraform Commands"
+        steps:
+          # Initialize Terraform
+          - task: TerraformTaskV4@4
+            inputs:
+              provider: 'azurerm'
+              command: 'init'
+              workingDirectory: '$(System.DefaultWorkingDirectory)/terraform'
+              backendServiceArm: 'connectionsaunak'
+              backendAzureRmResourceGroupName: 'RG-saunak'
+              backendAzureRmStorageAccountName: 'saunak021224'
+              backendAzureRmContainerName: 'container-saunak'
+              backendAzureRmKey: 'terraform2.tfstate'
+            displayName: "Initialize Terraform"
 
-  #         # Terraform Plan
-  #         - task: TerraformTaskV4@4
-  #           inputs:
-  #             provider: 'azurerm'
-  #             command: 'plan'
-  #             workingDirectory: '$(System.DefaultWorkingDirectory)/terraform'
-  #             environmentServiceNameAzureRM: 'connectionsaunak'
-  #           displayName: "Terraform Plan"
+          # Terraform Plan
+          - task: TerraformTaskV4@4
+            inputs:
+              provider: 'azurerm'
+              command: 'plan'
+              workingDirectory: '$(System.DefaultWorkingDirectory)/terraform'
+              environmentServiceNameAzureRM: 'connectionsaunak'
+            displayName: "Terraform Plan"
 
-  #         # Terraform Apply
-  #         - task: TerraformTaskV4@4
-  #           inputs:
-  #             provider: 'azurerm'
-  #             command: 'apply'
-  #             workingDirectory: '$(System.DefaultWorkingDirectory)/terraform'
-  #             environmentServiceNameAzureRM: 'connectionsaunak'
-  #           displayName: "Apply Terraform Plan"
+          # Terraform Apply
+          - task: TerraformTaskV4@4
+            inputs:
+              provider: 'azurerm'
+              command: 'apply'
+              workingDirectory: '$(System.DefaultWorkingDirectory)/terraform'
+              environmentServiceNameAzureRM: 'connectionsaunak'
+            displayName: "Apply Terraform Plan"
 
   # Stage 4: Deploy to AKS
   - stage: Deploy_AKS

@@ -35,7 +35,8 @@ resource "azurerm_kubernetes_cluster" "AKS" {
   private_cluster_enabled = false
 
   tags = {
-    Environment = "Dev"       # Hardcoded Tag
+    Env = "Dev"  
+    owner = "saunak"     # Hardcoded Tag
   }
 }
 

@@ -4,9 +4,9 @@ provider "azurerm" {
 }
 terraform {
   backend "azurerm" {
-   resource_group_name   = "RG-Swati"
-   storage_account_name  = "swati21224"
-    container_name        = "container1"
+   resource_group_name   = "RG-saunak"
+   storage_account_name  = "saunak021224"
+    container_name        = "container-saunak"
    key                   = "terraform2.tfstate"
   }
   }

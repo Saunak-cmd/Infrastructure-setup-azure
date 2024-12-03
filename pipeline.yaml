@@ -34,12 +34,6 @@
 #             displayName: "Run install-terraform.yaml Playbook"
 
 
-# Starter pipeline
-# Start with a minimal pipeline that you can customize to build and deploy your code.
-# Add steps that build, run tests, deploy, and more:
-# https://aka.ms/yaml
-
-
 trigger:
   none  # This triggers the pipeline manually. Adjust as per your needs.
 
@@ -86,7 +80,7 @@ stages:
               scriptLocation: inlineScript
               inlineScript: |
                 echo "Logging into Azure CLI..."
-                az account set --subscription 'your-azure-subscription-id'  # Set the subscription
+                az account set --subscription 'f027d2e5-7ece-41c4-8a19-54dfa1d3491d'  # Set the correct subscription ID
             displayName: "Azure CLI Login"
 
           # Run Terraform init and plan

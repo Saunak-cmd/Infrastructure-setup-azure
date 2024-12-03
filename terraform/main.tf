@@ -14,7 +14,7 @@ terraform {
 
 # Reference the existing resource group
 data "azurerm_resource_group" "existing_rg" {
-  name = "existing-resource-group"  # Replace with your actual existing resource group name
+  name = "RG-saunak"  # Replace with your actual existing resource group name
 }
 
 resource "azurerm_container_registry" "container" {

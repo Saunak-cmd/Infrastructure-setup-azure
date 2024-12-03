@@ -1,0 +1,67 @@
+trigger:
+- none
+
+pool:
+  name = "poolcapstone"
+
+stages:
+- stage: InstallDependencies
+  displayName: 'Install Dependencies'
+  jobs:
+    - job: InstallDependenciesJob
+      displayName: 'Install JDK 17, Maven, kubectl, Docker, Docker Compose, and Azure CLI'
+      steps:
+        
+        # Step 1: Install JDK 17
+        - task: UseJavaToolInstaller@0
+          inputs:
+            versionSpec: '17'
+            jdkArchitecture: 'x64'
+
+        # Step 2: Install Maven
+        - task: UseMaven@3
+          inputs:
+            mavenVersion: '3.8.4'  # Specify the Maven version to install
+
+        # Step 3: Install kubectl
+        - script: |
+            curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+            sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
+          displayName: 'Install kubectl'
+
+        # Step 4: Install Docker
+        - script: |
+            sudo apt-get update
+            sudo apt-get install -y \
+                docker-ce \
+                docker-ce-cli \
+                containerd.io \
+                docker-compose-plugin
+          displayName: 'Install Docker'
+
+        # Step 5: Start Docker service
+        - script: |
+            sudo systemctl start docker
+            sudo systemctl enable docker
+          displayName: 'Start and Enable Docker'
+
+        # Step 6: Install Docker Compose
+        - script: |
+            sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+            sudo chmod +x /usr/local/bin/docker-compose
+          displayName: 'Install Docker Compose'
+
+        # Step 7: Install Azure CLI
+        - script: |
+            curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
+          displayName: 'Install Azure CLI'
+
+        # Step 8: Verify Installation of Tools
+        - script: |
+            java -version
+            mvn -version
+            kubectl version --client
+            docker --version
+            docker-compose --version
+            az --version
+          displayName: 'Verify Tool Installations'

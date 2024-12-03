@@ -1,6 +1,6 @@
 ---
 - name: Install Development Tools on Rocky Linux
-  hosts: saunak
+  hosts: server
   become: yes
   tasks:
     - name: Update package repository

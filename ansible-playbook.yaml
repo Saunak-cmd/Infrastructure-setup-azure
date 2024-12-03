@@ -25,7 +25,7 @@
 
     - name: Start and enable Docker service
       ansible.builtin.service:
-        name: docker
+        name: docker.service
         state: started
         enabled: yes
 

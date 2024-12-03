@@ -7,31 +7,20 @@ trigger:
   none
  
 pool:
-  #vmImage: ubuntu-latest
   name: "poolcapstone"
  
 stages:
-# Stage 1: Git Clone
-- stage: GitClone
-  displayName: "Clone Repository"
-  jobs:
-  - job: CloneJob
-    displayName: "Clone Git Repository"
-    steps:
-    - checkout: self
-      displayName: "Checkout Source Code"
- 
-# - stage: RunAnsiblePlaybook 
-#   displayName: "Run Ansible Playbook to Install"
-#   dependsOn: GitClone
-#   jobs:
-#   - job: InstallTerraform
-#     steps:
-#     - script: |
-#         echo "Running Ansible playbook to install ..."
-#         ansible-playbook ./ansible-playbook.yaml
+  # Stage 1: Git Clone
+  - stage: GitClone
+    displayName: "Clone Repository"
+    jobs:
+      - job: CloneJob
+        displayName: "Clone Git Repository"
+        steps:
+          - checkout: self
+            displayName: "Checkout Source Code"
 
-# Stage 2: Run Ansible Playbook to Install Terraform
+  # Stage 2: Run Ansible Playbook to Install Terraform
   - stage: RunAnsiblePlaybook 
     displayName: "Run Ansible Playbook to Install"
     dependsOn: GitClone

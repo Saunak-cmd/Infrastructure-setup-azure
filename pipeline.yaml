@@ -1,14 +1,12 @@
 # Starter pipeline
-# Start with a minimal pipeline that you can customize to build and deploy your code.
-# Add steps that build, run tests, deploy, and more:
-# https://aka.ms/yaml
- 
-trigger:
-  none
- 
+# This pipeline runs the playbooks to install various tools and setup Ansible.
+
+# Disables automatic trigger; you can manually run the pipeline if needed
+trigger: none
+
 pool:
-  name: "poolcapstone"
- 
+  name: "poolcapstone"  # Use the specific agent pool you need
+
 stages:
   # Stage 1: Git Clone
   - stage: GitClone
@@ -20,8 +18,8 @@ stages:
           - checkout: self
             displayName: "Checkout Source Code"
 
-  # Stage 2: Run Ansible Playbook to Install Terraform
-  - stage: RunAnsiblePlaybook 
+  # Stage 2: Run Ansible Playbook
+  - stage: RunAnsiblePlaybook
     displayName: "Run Ansible Playbook to Install"
     dependsOn: GitClone
     jobs:
@@ -29,6 +27,86 @@ stages:
         displayName: "Install Terraform"
         steps:
           - script: |
-              echo "Running Ansible playbook to install Terraform..."
-              ansible-playbook ./install-terraform.yaml  # This is the playbook you want to run
-            displayName: "Run install-terraform.yaml Playbook"
+              echo "Running Ansible playbook to install ..."
+              ansible-playbook ./ansible-playbook.yaml
+            displayName: "Run Ansible Playbook"
+
+  # Stage 3: Terraform Deploy
+  - stage: TerraformDeploy
+    displayName: "Deploy Infrastructure with Terraform"
+    dependsOn: RunAnsiblePlaybook
+    jobs:
+      - job: TerraformJob
+        displayName: "Run Terraform Commands"
+        steps:
+          # Initialize Terraform
+          - task: TerraformTaskV4@4
+            inputs:
+              provider: 'azurerm'
+              command: 'init'
+              workingDirectory: '$(System.DefaultWorkingDirectory)/terraform'
+              backendServiceArm: 'connectionsaunak'
+              backendAzureRmResourceGroupName: 'RG-saunak'
+              backendAzureRmStorageAccountName: 'saunak021224'
+              backendAzureRmContainerName: 'container-saunak'
+              backendAzureRmKey: 'terraform2.tfstate'
+            displayName: "Initialize Terraform"
+
+          # Terraform Plan
+          - task: TerraformTaskV4@4
+            inputs:
+              provider: 'azurerm'
+              command: 'plan'
+              workingDirectory: '$(System.DefaultWorkingDirectory)/terraform'
+              environmentServiceNameAzureRM: 'connectionsaunak'
+            displayName: "Terraform Plan"
+
+          # Terraform Apply
+          - task: TerraformTaskV4@4
+            inputs:
+              provider: 'azurerm'
+              command: 'apply'
+              workingDirectory: '$(System.DefaultWorkingDirectory)/terraform'
+              environmentServiceNameAzureRM: 'connectionsaunak'
+            displayName: "Apply Terraform Plan"
+
+  # Stage 4: Deploy to AKS
+  - stage: Deploy_AKS
+    displayName: "Deploy AKS and Download Kubeconfig"
+    dependsOn: TerraformDeploy
+    jobs:
+      - job: DeployAKS
+        displayName: "Deploy AKS and Download Kubeconfig"
+        steps:
+          # Azure CLI task to download kubeconfig
+          - task: AzureCLI@2
+            displayName: "Download AKS kubeconfig"
+            inputs:
+              azureSubscription: "connectionsaunak"
+              scriptType: bash
+              scriptLocation: inlineScript
+              inlineScript: |
+                # Set variables
+                RESOURCE_GROUP="RG-saunak"
+                CLUSTER_NAME="myakscluster-saunak"
+
+                # Download kubeconfig
+                az aks get-credentials --resource-group $RESOURCE_GROUP --name $CLUSTER_NAME  --overwrite-existing
+                echo "Kubeconfig downloaded"
+
+  - stage: KubernetesDeployment
+    displayName: "Deploy to Kubernetes Cluster"
+    dependsOn: Deploy_AKS
+    jobs:
+      - job: DeployToAKS
+        displayName: "Deploy to AKS"
+        steps:
+          - task: KubernetesManifest@1
+            inputs:
+              action: 'deploy'
+              connectionType: 'kubernetesServiceConnection'
+              kubernetesServiceConnection: 'kubesaunak'
+              azureResourceGroup: 'RG-saunak'
+              kubernetesCluster: 'myakscluster-saunak'
+              useClusterAdmin: true
+              manifests: '$(System.DefaultWorkingDirectory)/manifest/*'

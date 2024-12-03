@@ -94,33 +94,33 @@ stages:
                 az aks get-credentials --resource-group $RESOURCE_GROUP --name $CLUSTER_NAME  --overwrite-existing
                 echo "Kubeconfig downloaded"
 
-  # # Stage 5: Deploy to Kubernetes
-  # - stage: DeployToKubernetes
-  #   displayName: "Deploy to Kubernetes"
-  #   dependsOn: Deploy_AKS
-  #   jobs:
-  #     - job: DeployToAKS
-  #       displayName: "Deploy to AKS"
-  #       pool:
-  #         name: "poolcapstone"
-  #       steps:
-  #         # Apply Kubernetes resources
-  #         - task: Kubernetes@1
-  #           inputs:
-  #             connectionType: 'Kubernetes Service Connection'
-  #             kubernetesServiceEndpoint: 'kubesaunak'  # Replace with your Kubernetes service connection name
-  #             command: 'apply'
-  #             secretType: 'dockerRegistry'
-  #             containerRegistryType: 'Azure Container Registry'
-  #             azureSubscriptionEndpointForSecrets: 'connectionsaunak'
-  #             azureContainerRegistry: 'saunak021224.azurecr.io'  # Replace with your ACR address
-  #             secretName: 'dockerRegistry'  # Name of the Docker registry secret
+  # Stage 5: Deploy to Kubernetes
+  - stage: DeployToKubernetes
+    displayName: "Deploy to Kubernetes"
+    dependsOn: Deploy_AKS
+    jobs:
+      - job: DeployToAKS
+        displayName: "Deploy to AKS"
+        pool:
+          name: "poolcapstone"
+        steps:
+          # Apply Kubernetes resources
+          - task: Kubernetes@1
+            inputs:
+              connectionType: 'Kubernetes Service Connection'
+              kubernetesServiceEndpoint: 'kubesaunak'  # Replace with your Kubernetes service connection name
+              command: 'apply'
+              secretType: 'dockerRegistry'
+              containerRegistryType: 'Azure Container Registry'
+              azureSubscriptionEndpointForSecrets: 'connectionsaunak'
+              azureContainerRegistry: 'saunak021224.azurecr.io'  # Replace with your ACR address
+              secretName: 'dockerRegistry'  # Name of the Docker registry secret
 
-  #         # Deploy Kubernetes manifests
-  #         - task: KubernetesManifest@1
-  #           inputs:
-  #             action: 'deploy'
-  #             connectionType: 'kubernetesServiceConnection'
-  #             kubernetesServiceConnection: 'kubesaunak'  # Replace with your Kubernetes service connection name
-  #             namespace: 'default'
-  #             manifests: '$(dockerRegistryServiceConnection)/manifest'  # Path to your Kubernetes manifests
+          # Deploy Kubernetes manifests
+          - task: KubernetesManifest@1
+            inputs:
+              action: 'deploy'
+              connectionType: 'kubernetesServiceConnection'
+              kubernetesServiceConnection: 'kubesaunak'  # Replace with your Kubernetes service connection name
+              namespace: 'default'
+              manifests: '$(dockerRegistryServiceConnection)/manifest'  # Path to your Kubernetes manifests

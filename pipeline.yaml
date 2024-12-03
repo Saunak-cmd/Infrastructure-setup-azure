@@ -110,3 +110,12 @@ stages:
               kubernetesCluster: 'myakscluster-saunak'
               useClusterAdmin: true
               manifests: '$(System.DefaultWorkingDirectory)/manifest/*'
+
+          - script: |
+              echo "Accessing service via curl..."
+              kubectl get pods,svc
+              EXTERNAL_IP=$(kubectl get svc nginx-service -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+              echo "External IP of Nginx service is: $EXTERNAL_IP"
+              echo "Testing external service (Nginx) with curl..."
+              curl -s http://$EXTERNAL_IP
+            displayName: "Test Service with Curl"

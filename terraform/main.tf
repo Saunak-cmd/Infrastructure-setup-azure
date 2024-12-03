@@ -41,4 +41,11 @@ resource "azurerm_kubernetes_cluster" "example_kc" {
   }
  
   tags = var.tags
+  depends_on = [azurerm_container_registry.container]
+}
+# Assign Role for ACR Access to AKS
+resource "azurerm_role_assignment" "acr_pull" {
+  principal_id         = azurerm_kubernetes_cluster.example_kc.kubelet_identity[0].object_id
+  role_definition_name = "AcrPull"
+  scope                = azurerm_container_registry.container.id
 }

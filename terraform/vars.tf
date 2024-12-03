@@ -47,7 +47,7 @@ variable "tags" {
    description = "Common tags for all resources"
   type        = map(string)
   default = {
-    owner = "Swati"
+    owner = "saunak"
     project = "Final-Capstone"
     Env = "dev"
     Dep = "IT"

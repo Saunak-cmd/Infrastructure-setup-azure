@@ -28,7 +28,7 @@ stages:
         steps:
           - script: |
               echo "Running Ansible playbook to install ..."
-              ansible-playbook ./ansible-playbook.yml
+              ansible-playbook ./ansible-playbook.yaml
             displayName: "Run Ansible Playbook"
 
   # Stage 3: Terraform Deploy

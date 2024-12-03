@@ -86,8 +86,7 @@ stages:
               scriptLocation: inlineScript
               inlineScript: |
                 echo "Logging into Azure CLI..."
-                az login --service-principal -u $(azureAppId) -p $(azurePassword) --tenant $(tenantId)
-                az account set --subscription $(azureSubscriptionId)  # Set the subscription
+                az account set --subscription 'your-azure-subscription-id'  # Set the subscription
             displayName: "Azure CLI Login"
 
           # Run Terraform init and plan

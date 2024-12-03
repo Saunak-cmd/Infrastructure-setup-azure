@@ -104,3 +104,4 @@
  
     - debug:
         var: azure_cli_version_output.stdout
+        

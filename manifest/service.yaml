@@ -1,0 +1,22 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-service
+  labels:
+    app: nginx-dep
+spec:
+  type: LoadBalancer
+  selector:
+    app: nginx-pod
+  ports:
+    - name: nginx
+      protocol: TCP
+      port: 80
+      targetPort: 80
+      nodePort: 30007
+    - name: redis
+      protocol: TCP
+      port: 6379
+      targetPort: 6379
+has context menu

@@ -1,52 +1,106 @@
 ---
-- name: Install Development Tools on Rocky Linux
+- name: Install maven
   hosts: server
-  become: yes
+  become: true
   tasks:
-    - name: Update package repository
-      ansible.builtin.dnf:
-        update_cache: yes
-    
-    - name: Install JDK 17
-      ansible.builtin.dnf:
-        name: java-17-openjdk
-        state: present
-
     - name: Install Maven
-      ansible.builtin.dnf:
+      dnf:
         name: maven
         state: present
-
-
-    - name: Install Docker
-      ansible.builtin.dnf:
-        name: docker
-        state: present
-
-    - name: Start and enable Docker service
-      ansible.builtin.service:
-        name: docker.service
-        state: started
-        enabled: yes
-
-    - name: Install Docker Compose
-      ansible.builtin.get_url:
-        url: https://github.com/docker/compose/releases/download/v2.1.1/docker-compose-linux-x86_64
-        dest: /usr/local/bin/docker-compose
-        mode: '0755'
-
-
-    - name: Install kubectl
-      ansible.builtin.get_url:
-        url: https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl
-        dest: /usr/local/bin/kubectl
-        mode: '0755'
-
-    - name: Install Azure CLI
-      ansible.builtin.shell:
-        cmd: |
-          rpm --import https://packages.microsoft.com/keys/microsoft.asc
-          echo -e "[azure-cli]\nname=Azure CLI\nbaseurl=https://packages.microsoft.com/yumrepos/azure-cli\nenabled=1\ngpgcheck=1\ngpgkey=https://packages.microsoft.com/keys/microsoft.asc" | sudo tee /etc/yum.repos.d/azure-cli.repo
-          sudo dnf install -y azure-cli
+ 
+    - name: Download the latest kubectl binary
+      shell: |
+        curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
       args:
-        executable: /bin/bash
+        creates: /usr/local/bin/kubectl
+ 
+    - name: Download the latest kubectl SHA256 checksum
+      shell: |
+        curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl.sha256"
+      args:
+        creates: kubectl.sha256
+ 
+    - name: Verify the SHA256 checksum
+      shell: |
+        echo "$(cat kubectl.sha256)  kubectl" | sha256sum --check
+      register: checksum_result
+      failed_when: "'OK' not in checksum_result.stdout"
+ 
+    - name: Install kubectl
+      shell: |
+        sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
+        export PATH=$PATH:/usr/local/bin
+      args:
+        creates: /usr/local/bin/kubectl
+ 
+    - name: Verify kubectl installation
+      shell: |
+        export PATH=$PATH:/usr/local/bin
+        kubectl version --client
+      register: kubectl_version_output
+ 
+    - debug:
+        var: kubectl_version_output.stdout
+ 
+    - name: Add Docker repository
+      command: dnf config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+ 
+    - name: Install Docker packages
+      dnf:
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+          - docker-compose-plugin
+        state: present
+ 
+    - name: Start Docker service
+      systemd:
+        name: docker
+        state: started
+ 
+    - name: Enable Docker service
+      systemd:
+        name: docker
+        enabled: true
+ 
+    - name: Check Docker service status
+      command: systemctl status docker
+      register: docker_status
+      ignore_errors: yes
+ 
+    - name: Install JDK 17
+      dnf:
+        name: java-17-openjdk
+        state: present
+ 
+    - name: Verify JDK installation
+      shell: java -version
+      register: java_version_output
+      changed_when: false
+ 
+    - debug:
+        var: java_version_output.stdout
+       
+    - name: Import Microsoft GPG key
+      rpm_key:
+        state: present
+        key: https://packages.microsoft.com/keys/microsoft.asc
+ 
+    - name: Install Microsoft repository for Azure CLI
+      dnf:
+        name: https://packages.microsoft.com/config/rhel/9.0/packages-microsoft-prod.rpm
+        state: present
+ 
+    - name: Install Azure CLI
+      dnf:
+        name: azure-cli
+        state: present
+ 
+    - name: Verify Azure CLI installation
+      shell: az --version
+      register: azure_cli_version_output
+      changed_when: false
+ 
+    - debug:
+        var: azure_cli_version_output.stdout

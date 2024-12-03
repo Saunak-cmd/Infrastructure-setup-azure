@@ -35,73 +35,62 @@
 
 
 trigger:
-  none
+  none  # Manual trigger
 
 pool:
   name: "poolcapstone"
 
 stages:
-  # Stage 1: Git Clone
-  - stage: GitClone
+  # Stage 1: Clone Repository
+  - stage: CloneRepo
     displayName: "Clone Repository"
     jobs:
       - job: CloneJob
         displayName: "Clone Git Repository"
         steps:
           - checkout: self
-            displayName: "Checkout Source Code"
+            displayName: "Checkout Repository"
 
-  # Stage 2: Run Ansible Playbook to Install Terraform
-  - stage: RunAnsiblePlaybook 
-    displayName: "Run Ansible Playbook to Install"
-    dependsOn: GitClone
+  # Stage 2: Azure CLI Login
+  - stage: AzureLogin
+    displayName: "Login to Azure"
+    dependsOn: CloneRepo
     jobs:
-      - job: InstallTerraform
-        displayName: "Install Terraform"
+      - job: AzureLoginJob
+        displayName: "Authenticate with Azure"
         steps:
-          - script: |
-              echo "Running Ansible playbook to install Terraform..."
-              ansible-playbook ./install-terraform.yaml  # Playbook for installing Terraform (adjust path)
-            displayName: "Run install-terraform.yaml Playbook"
+          - task: AzureCLI@2
+            inputs:
+              azureSubscription: "connectionsaunak"  # Replace with your service connection name
+              scriptType: bash
+              scriptLocation: inlineScript
+              inlineScript: |
+                echo "Setting Azure Subscription..."
+                az account set --subscription f027d2e5-7ece-41c4-8a19-54dfa1d3491d
+            displayName: "Azure CLI Login"
 
-  # Stage 3: Terraform Deploy Infrastructure
+  # Stage 3: Terraform Deploy
   - stage: TerraformDeploy
-    displayName: "Terraform Deploy Infrastructure"
-    dependsOn: RunAnsiblePlaybook
+    displayName: "Deploy Infrastructure with Terraform"
+    dependsOn: AzureLogin
     jobs:
       - job: TerraformJob
         displayName: "Run Terraform Commands"
         steps:
-          # Azure CLI login step
-          - task: AzureCLI@2
-            inputs:
-              azureSubscription: 'connectionsaunak'  # Azure DevOps service connection for Azure
-              scriptType: bash
-              scriptLocation: inlineScript
-              inlineScript: |
-                echo "Logging into Azure CLI..."
-                az account set --subscription 'f027d2e5-7ece-41c4-8a19-54dfa1d3491d'  # Set the correct subscription ID
-            displayName: "Azure CLI Login"
-
-          # Change the working directory to where your Terraform files are located
+          # Initialize Terraform
           - script: |
-              cd terraform  # Change to your Terraform directory, if needed
-              terraform init  # Initialize Terraform
-              terraform plan -out=tfplan  # Plan infrastructure changes
-            displayName: "Terraform Init and Plan"
+              terraform init -backend-config="resource_group_name=RG-saunak" \
+                             -backend-config="storage_account_name=saunak021224" \
+                             -backend-config="container_name=container-saunak" \
+                             -backend-config="key=terraform2.tfstate"
+            displayName: "Initialize Terraform"
 
-          # Apply Terraform plan to create resources
+          # Terraform Plan
           - script: |
-              cd terraform  # Ensure you're in the Terraform directory
-              terraform apply -auto-approve tfplan  # Apply the changes without confirmation
-            displayName: "Terraform Apply"
+              terraform plan -out=tfplan
+            displayName: "Terraform Plan"
 
-          # Optional: Step to output Kubeconfig for AKS cluster
+          # Terraform Apply
           - script: |
-              echo $(terraform output -raw aks_kube_config) > $(System.DefaultWorkingDirectory)/kube_config.yaml
-            displayName: "Save AKS Kubeconfig"
-
-          # Optional: Verify AKS cluster (kubectl commands)
-          - script: |
-              kubectl --kubeconfig=$(System.DefaultWorkingDirectory)/kube_config.yaml get nodes
-            displayName: "Verify AKS Cluster Nodes"
+              terraform apply -auto-approve tfplan
+            displayName: "Apply Terraform Plan"

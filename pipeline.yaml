@@ -47,7 +47,7 @@ stages:
               workingDirectory: '$(System.DefaultWorkingDirectory)/terraform'
               backendServiceArm: 'connectionsaunak'
               backendAzureRmResourceGroupName: 'RG-saunak'
-              backendAzureRmStorageAccountName: 'saunak021224'
+              backendAzureRmStorageAccountName: 'saunak051224'
               backendAzureRmContainerName: 'container-saunak'
               backendAzureRmKey: 'terraform2.tfstate'
             displayName: "Initialize Terraform"
@@ -58,7 +58,7 @@ stages:
               provider: 'azurerm'
               command: 'plan'
               workingDirectory: '$(System.DefaultWorkingDirectory)/terraform'
-              environmentServiceNameAzureRM: 'connectionsaunak'
+              environmentServiceNameAzureRM: 'newconnectionsaunak'
             displayName: "Terraform Plan"
 
           # Terraform Apply
@@ -67,55 +67,55 @@ stages:
               provider: 'azurerm'
               command: 'apply'
               workingDirectory: '$(System.DefaultWorkingDirectory)/terraform'
-              environmentServiceNameAzureRM: 'connectionsaunak'
+              environmentServiceNameAzureRM: 'newconnectionsaunak'
             displayName: "Apply Terraform Plan"
 
-  # Stage 4: Deploy to AKS
-  - stage: Deploy_AKS
-    displayName: "Deploy AKS and Download Kubeconfig"
-    dependsOn: TerraformDeploy
-    jobs:
-      - job: DeployAKS
-        displayName: "Deploy AKS and Download Kubeconfig"
-        steps:
-          # Azure CLI task to download kubeconfig
-          - task: AzureCLI@2
-            displayName: "Download AKS kubeconfig"
-            inputs:
-              azureSubscription: "connectionsaunak"
-              scriptType: bash
-              scriptLocation: inlineScript
-              inlineScript: |
-                # Set variables
-                RESOURCE_GROUP="RG-saunak"
-                CLUSTER_NAME="myakscluster-saunak"
+  # # Stage 4: Deploy to AKS
+  # - stage: Deploy_AKS
+  #   displayName: "Deploy AKS and Download Kubeconfig"
+  #   dependsOn: TerraformDeploy
+  #   jobs:
+  #     - job: DeployAKS
+  #       displayName: "Deploy AKS and Download Kubeconfig"
+  #       steps:
+  #         # Azure CLI task to download kubeconfig
+  #         - task: AzureCLI@2
+  #           displayName: "Download AKS kubeconfig"
+  #           inputs:
+  #             azureSubscription: "connectionsaunak"
+  #             scriptType: bash
+  #             scriptLocation: inlineScript
+  #             inlineScript: |
+  #               # Set variables
+  #               RESOURCE_GROUP="RG-saunak"
+  #               CLUSTER_NAME="myakscluster-saunak"
 
-                # Download kubeconfig
-                az aks get-credentials --resource-group $RESOURCE_GROUP --name $CLUSTER_NAME  --overwrite-existing
-                echo "Kubeconfig downloaded"
+  #               # Download kubeconfig
+  #               az aks get-credentials --resource-group $RESOURCE_GROUP --name $CLUSTER_NAME  --overwrite-existing
+  #               echo "Kubeconfig downloaded"
 
-  - stage: KubernetesDeployment
-    displayName: "Deploy to Kubernetes Cluster"
-    dependsOn: Deploy_AKS
-    jobs:
-      - job: DeployToAKS
-        displayName: "Deploy to AKS"
-        steps:
-          - task: KubernetesManifest@1
-            inputs:
-              action: 'deploy'
-              connectionType: 'kubernetesServiceConnection'
-              kubernetesServiceConnection: 'kubesaunak'
-              azureResourceGroup: 'RG-saunak'
-              kubernetesCluster: 'myakscluster-saunak'
-              useClusterAdmin: true
-              manifests: '$(System.DefaultWorkingDirectory)/manifest/*'
+  # - stage: KubernetesDeployment
+  #   displayName: "Deploy to Kubernetes Cluster"
+  #   dependsOn: Deploy_AKS
+  #   jobs:
+  #     - job: DeployToAKS
+  #       displayName: "Deploy to AKS"
+  #       steps:
+  #         - task: KubernetesManifest@1
+  #           inputs:
+  #             action: 'deploy'
+  #             connectionType: 'kubernetesServiceConnection'
+  #             kubernetesServiceConnection: 'kubesaunak'
+  #             azureResourceGroup: 'RG-saunak'
+  #             kubernetesCluster: 'myakscluster-saunak'
+  #             useClusterAdmin: true
+  #             manifests: '$(System.DefaultWorkingDirectory)/manifest/*'
 
-          - script: |
-              echo "Accessing service via curl..."
-              kubectl get pods,svc
-              EXTERNAL_IP=$(kubectl get svc nginx-service -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
-              echo "External IP of Nginx service is: $EXTERNAL_IP"
-              echo "Testing external service (Nginx) with curl..."
-              curl -s http://$EXTERNAL_IP
-            displayName: "Test Service with Curl"
+  #         - script: |
+  #             echo "Accessing service via curl..."
+  #             kubectl get pods,svc
+  #             EXTERNAL_IP=$(kubectl get svc nginx-service -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+  #             echo "External IP of Nginx service is: $EXTERNAL_IP"
+  #             echo "Testing external service (Nginx) with curl..."
+  #             curl -s http://$EXTERNAL_IP
+  #           displayName: "Test Service with Curl"

@@ -47,7 +47,7 @@ stages:
               workingDirectory: '$(System.DefaultWorkingDirectory)/terraform'
               backendServiceArm: 'connectionsaunak'
               backendAzureRmResourceGroupName: 'RG-saunak'
-              backendAzureRmStorageAccountName: 'saunak021224'
+              backendAzureRmStorageAccountName: 'saunak051224'
               backendAzureRmContainerName: 'container-saunak'
               backendAzureRmKey: 'terraform2.tfstate'
             displayName: "Initialize Terraform"
@@ -67,7 +67,7 @@ stages:
               provider: 'azurerm'
               command: 'apply'
               workingDirectory: '$(System.DefaultWorkingDirectory)/terraform'
-              environmentServiceNameAzureRM: 'connectionsaunak'
+              environmentServiceNameAzureRM: 'newconnectionsaunak'
             displayName: "Apply Terraform Plan"
 
   # Stage 4: Deploy to AKS
@@ -94,19 +94,19 @@ stages:
                 az aks get-credentials --resource-group $RESOURCE_GROUP --name $CLUSTER_NAME  --overwrite-existing
                 echo "Kubeconfig downloaded"
 
-  - stage: KubernetesDeployment
-    displayName: "Deploy to Kubernetes Cluster"
-    dependsOn: Deploy_AKS
-    jobs:
-      - job: DeployToAKS
-        displayName: "Deploy to AKS"
-        steps:
-          - task: KubernetesManifest@1
-            inputs:
-              action: 'deploy'
-              connectionType: 'kubernetesServiceConnection'
-              kubernetesServiceConnection: 'kubesaunak'
-              azureResourceGroup: 'RG-saunak'
-              kubernetesCluster: 'myakscluster-saunak'
-              useClusterAdmin: true
-              manifests: '$(System.DefaultWorkingDirectory)/manifest/*'
+  # - stage: KubernetesDeployment
+  #   displayName: "Deploy to Kubernetes Cluster"
+  #   dependsOn: Deploy_AKS
+  #   jobs:
+  #     - job: DeployToAKS
+  #       displayName: "Deploy to AKS"
+  #       steps:
+  #         - task: KubernetesManifest@1
+  #           inputs:
+  #             action: 'deploy'
+  #             connectionType: 'kubernetesServiceConnection'
+  #             kubernetesServiceConnection: 'kubesaunak'
+  #             azureResourceGroup: 'RG-saunak'
+  #             kubernetesCluster: 'myakscluster-saunak'
+  #             useClusterAdmin: true
+  #             manifests: '$(System.DefaultWorkingDirectory)/manifest/*'

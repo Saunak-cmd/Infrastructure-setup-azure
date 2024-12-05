@@ -9,9 +9,9 @@
 subscription_id          = "ec1b2e4b-c6e8-4438-8ab4-23f3e8a298ff"
 location                 = "Central India"
 existing_resource_group_name = "RG-saunak"
-acr_name                     = "saunak021224"  # Ensure this name is globally unique
+acr_name                     = "saunak051224"  # Ensure this name is globally unique
 acr_sku                      = "Basic"
 aks_name                     = "myakscluster-saunak"
 aks_dns_prefix               = "myakscluster-saunak"
-node_count                   = 3
+node_count                   = 1
 vm_size                      = "Standard_DS2_v2"

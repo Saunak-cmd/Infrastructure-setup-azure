@@ -6,7 +6,7 @@
  
  
  
-subscription_id          = "f027d2e5-7ece-41c4-8a19-54dfa1d3491d"
+subscription_id          = "ec1b2e4b-c6e8-4438-8ab4-23f3e8a298ff"
 location                 = "Central India"
 existing_resource_group_name = "RG-saunak"
 acr_name                     = "saunak021224"  # Ensure this name is globally unique

@@ -45,7 +45,7 @@ stages:
               provider: 'azurerm'
               command: 'init'
               workingDirectory: '$(System.DefaultWorkingDirectory)/terraform'
-              backendServiceArm: 'connectionsaunak'
+              backendServiceArm: 'newconnectionsaunak'
               backendAzureRmResourceGroupName: 'RG-saunak'
               backendAzureRmStorageAccountName: 'saunak051224'
               backendAzureRmContainerName: 'container-saunak'

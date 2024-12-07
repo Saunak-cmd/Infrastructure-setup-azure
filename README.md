@@ -1,20 +1,35 @@
-# Introduction 
-TODO: Give a short introduction of your project. Let this section explain the objectives or the motivation behind this project. 
+Virtual Machine Creation:​
 
-# Getting Started
-TODO: Guide users through getting your code up and running on their own system. In this section you can talk about:
-1.	Installation process
-2.	Software dependencies
-3.	Latest releases
-4.	API references
+Provision a Windows 11 virtual machine (VM) with a public IP and username, password.​
 
-# Build and Test
-TODO: Describe and show how to build your code and run the tests. 
+Access the VM using SSH or Remote Desktop (RDP).​
 
-# Contribute
-TODO: Explain how other users and developers can contribute to make your code better. 
+Azure Environment Setup:​
 
-If you want to learn more about creating good readme files then refer the following [guidelines](https://docs.microsoft.com/en-us/azure/devops/repos/git/create-a-readme?view=azure-devops). You can also seek inspiration from the below readme files:
-- [ASP.NET Core](https://github.com/aspnet/Home)
-- [Visual Studio Code](https://github.com/Microsoft/vscode)
-- [Chakra Core](https://github.com/Microsoft/ChakraCore)
+Configure  a Storage Account, Container, Resource Group (RG), Virtual Network (VNet), and two Subnets in Azure portal manually.​
+
+Terraform Configuration:​
+
+Install and set up Terraform to create a new Linux VM.​
+
+Linux VM Deployment:​
+
+Deploy a Rocky Linux VM, attach a 3GB volume, configure /etc/fstab for persistent mounting, and register the VM as an Azure DevOps agent.​
+
+Pipeline Configuration:​
+
+Use an Ansible playbook to install JDK17, Maven, Kubernetes CLI (kubectl), Docker, and Azure CLI on the VM.​
+
+Infrastructure Provisioning:​
+
+Install Terraform in the new VM to deploy an Azure Container Registry (ACR) and an Azure Kubernetes Service (AKS) cluster using Terraform.​
+
+Branch Management:​
+
+Create and manage separate branches in Azure Repos:​
+
+      Dev for development work.​
+
+      Feature for individual tasks.​
+
+      Main for stable production-ready code.​
